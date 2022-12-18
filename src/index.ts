@@ -64,17 +64,17 @@ const users: User[] = [
 // LISTAR TODOS OS USUÁRIOS DA APLICAÇÃO
 app.get('/users', (request: Request, response: Response) => {
 
-    if(users.length > 0) {
-        return response.status(200).json({
-          ok: true,
-          message: 'Dados encontrados com sucesso',
-          dados: users,
-        });
+    if(users.length === 0) {
+      return response.status(404).json({
+        ok: false,
+        mensagem: 'Nenhum usuário cadastrado ainda',
+        dados: users,
+      });
     }
     
-    return response.status(404).json({
-      ok: false,
-      message: 'Nenhum usuário cadastrado ainda',
+    return response.status(200).json({
+      ok: true,
+      mensagem: 'Dados encontrados com sucesso',
       dados: users,
     });
 })
@@ -88,14 +88,14 @@ app.get('/users/:email', (request: Request, response: Response) => {
     if(!userFound) {
         return response.status(404).json({
           ok: false,
-          message: 'Nenhum usuário encontrado com esse e-mail',
+          mensagem: 'Nenhum usuário encontrado com esse e-mail',
           dados: {},
         });
     }
 
     return response.status(200).json({
       ok: true,
-      message: 'Usuário encontrado com sucesso!',
+      mensagem: 'Usuário encontrado com sucesso!',
       dados: userFound,
     });
 })
@@ -107,28 +107,32 @@ app.post('/users', (request: Request, response: Response) => {
     if(!name) {
         return response.status(400).json({
           ok: false,
-          message: 'Campo "Nome" é obrigatório.',
+          mensagem: 'Campo "Nome" é obrigatório.',
+          dados: {},
         });
     }
 
     if(!email) {
         return response.status(400).json({
           ok: false,
-          message: 'Campo "E-mail" é obrigatório.',
-        })
+          mensagem: 'Campo "E-mail" é obrigatório.',
+          dados: {},
+        });
     }
 
     if (!password) {
         return response.status(400).json({
           ok: false,
-          message: 'Campo "Senha" é obrigatório.',
-        })
+          mensagem: 'Campo "Senha" é obrigatório.',
+          dados: {},
+        });
     }
 
     if (!recados) {
       return response.status(400).json({
         ok: false,
-        message: 'Campo "Recados" é obrigatório.',
+        mensagem: 'Campo "Recados" é obrigatório.',
+        dados: {},
       });
     }
 
@@ -136,8 +140,10 @@ app.post('/users', (request: Request, response: Response) => {
 
     if(userExists) {
         return response.status(400).json({
-            ok: false,
-            message: 'Já existe um usuário cadastrado com o e-mail informado. Tente outro!'
+          ok: false,
+          mensagem:
+            'Já existe um usuário cadastrado com o e-mail informado. Tente outro!',
+          dados: {},
         });
     }
 
@@ -150,7 +156,7 @@ app.post('/users', (request: Request, response: Response) => {
 
     return response.status(201).json({
       ok: true,
-      message: 'Usuário criado com sucesso!',
+      mensagem: 'Usuário criado com sucesso!',
       dados: {
         name,
         email,
@@ -183,12 +189,14 @@ app.post('/users/:email/recados', (request: Request, response: Response) => {
       detail,
     };
 
-    user?.recados.push(novoRecado);
+    if(user) {
+      user.recados.push(novoRecado);
+    }
 
     return response.status(201).json({
       ok: true,
-      message: 'Recado criado com sucesso!',
-      dado: novoRecado,
+      messagem: 'Recado criado com sucesso!',
+      dados: novoRecado,
     });
 });
 
@@ -206,18 +214,18 @@ app.get('/users/:email/recados', (request: Request, response: Response) => {
       });
     }
 
-    if(user?.recados.length === 0) {
+    if(user && user.recados.length === 0) {
         return response.status(404).json({
           ok: false,
-          message: 'Nenhum recado cadastrado ainda para este usuário',
+          mensagem: 'Nenhum recado cadastrado ainda para este usuário',
           dados: [],
         });
     }
 
     return response.status(201).json({
       ok: true,
-      message: 'Recados do usuário buscados com sucesso!',
-      dados: user?.recados,
+      mensagem: 'Recados do usuário buscados com sucesso!',
+      dados: user.recados,
     });
 });
 
@@ -229,24 +237,30 @@ app.get('/users/:email/recados/:id', (request: Request, response: Response) => {
   if (!user) {
     return response.status(404).json({
       ok: false,
-      message: 'Nenhum usuário encontrado com o e-mail informado.',
+      mensagem: 'Nenhum usuário encontrado com o e-mail informado.',
       dados: {},
     });
   }
 
-  const recadoEncontrado = user?.recados.find((recado) => recado.id === id);
+  let recadoEncontrado;
 
-  if(!recadoEncontrado) {
+  if(user) {
+    recadoEncontrado = user.recados.find((recado) => recado.id === id);
+  }
+
+  if (!recadoEncontrado) {
     return response.status(404).json({
       ok: false,
-      message: 'Nenhum recado encontrado com o identificador informado.',
+      mensagem: 'Nenhum recado encontrado com o id informado.',
       dados: {},
     });
   }
+
+  
 
   return response.status(200).json({
     ok: true,
-    message: 'Recado encontrado com sucesso.',
+    mensagem: 'Recado encontrado com sucesso.',
     dados: recadoEncontrado,
   }); 
 });
@@ -259,7 +273,7 @@ app.put('/users/:email/recados/:id', (request: Request, response: Response) => {
     if (!description) {
       return response.status(400).json({
         ok: false,
-        message: 'O campo "Descrição" é obrigatório.',
+        mensagem: 'O campo "Descrição" é obrigatório.',
         dados: {},
       });
     }
@@ -267,7 +281,7 @@ app.put('/users/:email/recados/:id', (request: Request, response: Response) => {
     if (!detail) {
       return response.status(400).json({
         ok: false,
-        message: 'O campo "Detalhamento" é obrigatório.',
+        mensagem: 'O campo "Detalhamento" é obrigatório.',
         dados: {},
       });
     }
@@ -277,7 +291,7 @@ app.put('/users/:email/recados/:id', (request: Request, response: Response) => {
     if (!user) {
       return response.status(404).json({
         ok: false,
-        message: 'Nenhum usuário encontrado com o e-mail informado.',
+        mensagem: 'Nenhum usuário encontrado com o e-mail informado.',
         dados: {},
       });
     }
@@ -287,7 +301,7 @@ app.put('/users/:email/recados/:id', (request: Request, response: Response) => {
     if (indiceEncontrado === -1) {
       return response.status(404).json({
         ok: false,
-        message: 'Nenhum recado encontrado com o identificador informado.',
+        mensagem: 'Nenhum recado encontrado com o identificador informado.',
         dados: {},
       });
     }
@@ -302,7 +316,7 @@ app.put('/users/:email/recados/:id', (request: Request, response: Response) => {
 
     return response.status(200).json({
       ok: true,
-      message: 'Recado atualizado com sucesso',
+      mensagem: 'Recado atualizado com sucesso',
       dados: recadoAtualizado,
     });
 
@@ -316,7 +330,7 @@ app.delete('/users/:email/recados/:id', (request: Request, response: Response) =
     if (!user) {
       return response.status(404).json({
         ok: false,
-        message: 'Nenhum usuário encontrado com o e-mail informado.',
+        mensagem: 'Nenhum usuário encontrado com o e-mail informado.',
         dados: {},
       });
     }
@@ -328,7 +342,7 @@ app.delete('/users/:email/recados/:id', (request: Request, response: Response) =
     if (indiceEncontrado === -1) {
       return response.status(404).json({
         ok: false,
-        message: 'Nenhum recado encontrado com o identificador informado.',
+        mensagem: 'Nenhum recado encontrado com o identificador informado.',
         dados: {},
       });
     }
@@ -337,7 +351,7 @@ app.delete('/users/:email/recados/:id', (request: Request, response: Response) =
 
     return response.status(200).json({
       ok: true,
-      message: 'Recado excluido com sucesso!',
+      mensagem: 'Recado excluido com sucesso!',
       dados: user.recados,
     });
 
