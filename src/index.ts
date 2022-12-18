@@ -41,7 +41,11 @@ const users: User[] = [
     email: 'teste@teste.com',
     name: 'João da Silva',
     password: 'senha123',
-    recados: [],
+    recados: [{
+      id: '123',
+      description: 'teste',
+      detail: 'teste detail'
+    }],
   },
   {
     email: 'teste2@teste.com',
@@ -164,6 +168,30 @@ app.post('/users', (request: Request, response: Response) => {
         recados,
       },
     });
+
+});
+
+app.put('/users/:email', (request: Request, response: Response) => {
+  const novasInfosUsuario = request.body;
+  const { email } = request.params;
+
+  const indiceUser = users.findIndex((user) => user.email === email)
+
+  if(indiceUser === -1) {
+    return response.status(404).json({
+      ok: false,
+      mensagem: 'Usuário não encontrado pelo e-mail informado',
+      dados: {}
+    })
+  }
+
+  users[indiceUser].recados = novasInfosUsuario;
+
+  return response.status(201).json({
+    ok: true,
+    mensagem: 'Recados do usuário atualizado com sucesso',
+    dados: users[indiceUser],
+  });
 
 });
 
